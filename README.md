@@ -2,7 +2,7 @@
 Semesterprosjekt høst 2025 info 212
 Assignment 1
 Tasks:
-Group formation. Select a customer representative, and perhaps a Scrum master.
+  Group formation. Select a customer representative, and perhaps a Scrum master.
 Identify a problem you want to solve or a situation you want to improve.
 Identify clearly who will be the users of the system
 Describe 2-3 user stories per group member.
