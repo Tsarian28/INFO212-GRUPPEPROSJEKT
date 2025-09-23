@@ -51,3 +51,21 @@ git push origin --delete feature-name   # delete on GitHub
 🚦 Golden Rule
 NEVER code directly on main.
 Always: branch → commit → push → pull request → review → merge.
+
+**information about files in project root**
+.gitignore → Keeps junk files (__pycache__/, venv/, .DS_Store) out of Git.
+
+README.md → Top-level explanation of the whole project: what it does, how to install, how to run.
+
+requirements.txt → List of dependencies (e.g. PySide6, pandas).
+
+setup.py → (Optional) Package setup if you want to install this project with pip.
+
+# Assets
+
+This folder contains static resources used by the program.
+
+- `icons/` → Small icons for buttons or menus.
+- `images/` → Larger images, backgrounds, or branding.
+
+These files are **not code** but are loaded by the GUI for display.
