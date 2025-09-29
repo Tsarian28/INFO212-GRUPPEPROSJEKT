@@ -41,3 +41,28 @@ The logic is separate from the GUI so the program’s rules and calculations can
 - Logic files should **not contain any GUI code**.
 - The GUI (`src/gui/`) calls these functions and displays the results.
 - Keeping logic separate makes it easier to test, debug, and extend.
+
+
+
+## Flow summary
+
+* main.py → starts LoginGUI.
+
+* LoginGUI → after login → open MainPageGUI.
+
+* MainPageGUI → click "Create Workout" → 
+  choose Questionnaire or Chatbot.
+
+* QuestionnaireGUI or ChatbotGUI → produce data → call training_plan.
+
+* Show routines in RoutineGUI.
+
+## Where to store user data then?
+
+logic/users.py manages persistent info (DB or file).
+
+When you log in, you load that user’s data.
+
+## The GUI just displays it — it doesn’t own it.
+
+So even if you destroy and recreate the GUI object, the user’s workout plans are still retrievable from your logic layer.
