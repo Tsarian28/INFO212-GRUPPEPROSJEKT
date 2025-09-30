@@ -2,9 +2,9 @@
 # src/logic/__init__.py
 
 from .questionnaire import Questionnaire
-from .training_plan import TrainingPlan
+from .X_training_plan import TrainingPlan
 from .users import UserManager
-from .chatbot import Chatbot
+from .X_chatbot import Chatbot
 
 __all__ = [
     "Questionnaire",

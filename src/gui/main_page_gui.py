@@ -12,40 +12,30 @@ on_create_workout() → choose Questionnaire or Chatbot → open new GUI window.
 
 
 import tkinter as tk
-from logic.users import UserManager
+from tkinter import ttk
+from gui.tabs_gui import WelcomeTab, ChecklistTab, ProgressTab, WorkoutsTab
+
 
 class MainPageGUI:
     def __init__(self, root, username, on_logout):
         self.root = root
         self.username = username
-        self.on_logout = on_logout  # callback to App
+        self.on_logout = on_logout
 
         self.frame = tk.Frame(self.root)
-        self.frame.pack()
+        self.frame.pack(fill="both", expand=True)
 
-        tk.Label(self.frame, text=f"Welcome, {self.username}!").pack()
+        self.notebook = ttk.Notebook(self.frame)
+        self.notebook.pack(fill="both", expand=True)
 
-        self.workouts_frame = tk.Frame(self.frame)
-        self.workouts_frame.pack()
-        self.display_workouts()
+        # Build all tabs
+        WelcomeTab(self.notebook, self.username)
+        ChecklistTab(self.notebook)
+        ProgressTab(self.notebook)
+        WorkoutsTab(self.notebook, self.username)
 
-        tk.Button(self.frame, text="Create Workout Plan", command=self.create_workout).pack()
-        tk.Button(self.frame, text="Logout", command=self.logout).pack()
-
-    def display_workouts(self):
-        for widget in self.workouts_frame.winfo_children():
-            widget.destroy()
-        plans = UserManager.get_workouts(self.username)
-        if plans:
-            tk.Label(self.workouts_frame, text="Your Workout Plans:").pack()
-            for i, plan in enumerate(plans, 1):
-                tk.Label(self.workouts_frame, text=f"{i}. {plan}").pack()
-        else:
-            tk.Label(self.workouts_frame, text="No saved workouts yet.").pack()
-
-    def create_workout(self):
-        UserManager.add_workout(self.username, "Prototype Full-Body Routine")
-        self.display_workouts()
+        tk.Button(self.frame, text="Logout", command=self.logout).pack(pady=10)
 
     def logout(self):
-        self.on_logout()  # let App handle switching
+        self.frame.destroy()
+        self.on_logout()

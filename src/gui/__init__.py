@@ -4,8 +4,8 @@
 from .main_page_gui import MainPageGUI
 from .login_gui import LoginGUI
 from .questionnaire_gui import QuestionnaireGUI
-from .chatbot_gui import ChatbotGUI
-from .routine_gui import RoutineGUI
+from .X_chatbot_gui import ChatbotGUI
+from .X_routine_gui import RoutineGUI
 
 __all__ = [
     "MainPageGUI",
