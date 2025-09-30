@@ -1,1 +1,20 @@
 #tells the system what files to ignore
+#tells the system what files to ignore
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore SQLite database (local dev only)
+users.db
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore virtual environments
+venv/
+.env/
+
+# Ignore macOS junk
+.DS_Store
