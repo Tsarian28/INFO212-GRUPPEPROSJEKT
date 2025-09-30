@@ -4,9 +4,11 @@ from tkinter import messagebox
 class TrainingSurvey:
     def __init__(self, root):
         self.root = root
-        self.root.title = 'Spørsmål for å planlegge øktene dine!'
+        self.root.title('Spørsmål for å planlegge øktene dine!')
 
         self.answers = {}
+
+        tk.Label(root, text = 'Spørsmål til treningsplanleggeren', font = ('Arial', 14, 'bold')).pack(pady = 10)
 
         #Treningsnivå
         tk.Label(root, text = 'Hvilket treningsnivå befinner du deg på?').pack(anchor = 'w', padx = 10, pady = 5)
@@ -57,3 +59,4 @@ if __name__ == '__main__':
     root = tk.Tk()
     app = TrainingSurvey(root)
     root.mainloop()
+
