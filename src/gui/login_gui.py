@@ -1,16 +1,6 @@
 '''
 Class: LoginGUI
-
-Methods:
-
-build_ui() → renders login + create user form.
-
-on_login() → calls logic.users.authenticate().
-
-on_register() → calls logic.users.create_user().
-
-Emits: success event → tells app to switch to MainPageGUI.
-
+Formal class for log in development
 '''
 
 import tkinter as tk
