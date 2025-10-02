@@ -1,43 +1,96 @@
-Main source code for your program.
+# 🏋️ Training Planner – INFO212  
 
-main.py
-- Entry point of the app.
-- Should only handle starting the program and calling the GUI (e.g. from gui.main_window import run_app).
+A Tkinter-based training planner where users can:  
+- Log in / register  
+- Track training days & progress  
+- Create workout plans via a questionnaire  
+- Save workouts with names to a SQLite database  
+- View saved workouts in a scrollable tab  
+
+---
+
+## 🚦 Developer Guide – How to Add or Update Features  
+
+When extending the app, follow these steps so everything still works:  
+
+1. **Update the logic first (if needed)**  
+   - Add/change data handling in `src/logic/`.  
+   - Example: adding a new questionnaire question → update `logic/questionnaire.py`.  
+   - If the database needs new columns → update `UserManager.init_db()` and reset/migrate `users.db`.  
+
+2. **Update the GUI layer**  
+   - Display changes in `src/gui/`.  
+   - Add a new tab → create a new class in `tabs_gui.py` and hook it in `main_page_gui.py`.  
+   - Add a new questionnaire question → make sure `questionnaire.py` (logic) and `questionnaire_gui.py` (display) are in sync.  
+
+3. **Keep responsibilities separate**  
+   - `src/gui/` → only handles display and user interaction.  
+   - `src/logic/` → rules, calculations, database.  
+   - `src/utils/` → generic helpers, no GUI or DB code.  
+
+4. **Always run the app from the project root**  
+   ```bash
+   python3 src/main.py
+
+5. **Check database schema after changes**
+    in terminal: sqlite3 users.db ".schema workouts"
 
 
-# GUI (Graphical User Interface)
+## 🗂️ Project Structure
 
-This folder contains everything related to the program's interface.
+### Main Entry
+- `src/main.py` → Starts the program, calls `UserManager.init_db()`, launches login flow.
 
-- `main_window.py` → Launches the main GUI window.
-- `components.py` → Holds reusable UI components (buttons, forms, layouts).
-- `dialogs.py` → Optional dialogs/popups (e.g. settings, about).
-- `__init__.py` → Marks this folder as a Python package.
+---
 
-The GUI **only handles display and user interaction**. Any logic/calculations should be placed in `logic/` or `utils/`.
+### GUI Layer (`src/gui/`)
+Tkinter interface only.
 
-# Utils (Helper Functions)
+- `login_gui.py` → Login & registration.  
+- `main_page_gui.py` → Sets up the Notebook (tabs).  
+- `tabs_gui.py` → Contains tab classes:  
+  - `WelcomeTab` → greeting  
+  - `ChecklistTab` → weekly training checklist  
+  - `ProgressTab` → simple progress bar placeholder  
+  - `WorkoutsTab` → questionnaire + saved plans (scrollable)  
+- `questionnaire_gui.py` → Renders questionnaire (radio buttons + entry).  
 
-This folder contains small helper utilities that can be reused across the project.
+---
 
-- `helpers.py` → General-purpose helper functions such as:
-  - File handling (load/save data)
-  - Formatting strings, dates, numbers
-  - Input validation
+### Logic Layer (`src/logic/`)
+App rules & persistence.
 
-Utils **should not depend on GUI code**. They are general and reusable.
+- `users.py` → database manager  
+  - `users` table → usernames + hashed passwords  
+  - `workouts` table → `(id, username, name, plan)` where `plan` is JSON  
+- `questionnaire.py` → defines questionnaire questions.  
+- `training_plan.py` → (future expansion) generate workout routines.  
 
-# Logic (Core Functionality)
+---
 
-This folder contains the **core logic** of the training program.  
-The logic is separate from the GUI so the program’s rules and calculations can be tested and reused independently.
+### Utils (`src/utils/`)
+Generic helpers.
 
-### Example files:
-- `training.py` → Functions and classes that generate or update training plans.
-- `data_manager.py` → Handles saving and loading program data (e.g., JSON, CSV, database).
-- `stats.py` → Calculates statistics, progress tracking, or reports.
+- `helpers.py` → reusable functions.  
+- `user_db.py` → ⚠️ legacy DB handler, replaced by `logic/users.py`.  
 
-### Guidelines:
-- Logic files should **not contain any GUI code**.
-- The GUI (`src/gui/`) calls these functions and displays the results.
-- Keeping logic separate makes it easier to test, debug, and extend.
+---
+
+## 🔄 Flow Summary
+1. `main.py` → runs `UserManager.init_db()` → launches `LoginGUI`.  
+2. `LoginGUI` → authenticates user → opens `MainPageGUI`.  
+3. `MainPageGUI` → shows 4 tabs: **Welcome, Checklist, Progress, Workouts**.  
+4. In **Workouts tab**:  
+   - Click **Create Workout Plan** → shows `QuestionnaireGUI`.  
+   - Submit → asks for a workout name → saves `(username, name, plan)` in DB.  
+   - Questionnaire disappears → saved workouts refresh in a scrollable list.  
+5. Data is persisted in `users.db` → plans remain after logout/restart.  
+
+---
+
+## 💾 Data Persistence
+Managed entirely by `logic/users.py`:  
+- `users` table → stores usernames and SHA-256 hashed passwords.  
+- `workouts` table → stores each workout plan (name + JSON answers).  
+
+➡️ The GUI just displays data — it doesn’t own it. Even if you close/restart the app, the database keeps everything.  
