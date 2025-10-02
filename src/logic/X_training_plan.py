@@ -1,11 +1,6 @@
 '''
-logic/training_plan.py
-
-Functions:
-
-generate_from_questionnaire(answers) → returns routine options.
-
-generate_from_chatbot(chat_history) → returns routine options.
+This is used for generating a plan based on the user input from the questionnaire. This is to be used in a later version of the program
+This is the brain of our app
 '''
 
 class TrainingPlan:
