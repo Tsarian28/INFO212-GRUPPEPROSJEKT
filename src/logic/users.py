@@ -1,15 +1,8 @@
 '''
 logic/users.py
-
-Functions or class: UserManager
-
-Methods:
-
-create_user(username, password) (store hashed password).
-
-authenticate(username, password) (check credentials).
-
-Uses SQLite (or JSON for prototype).
+Creates a database with sqlite3
+- handles user authentication and workout tracking system, this creates users hashes the passwords
+- authenticates users checking against stored hashes
 '''
 
 import hashlib
