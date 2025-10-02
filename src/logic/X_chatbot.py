@@ -1,16 +1,5 @@
 '''
-logic/chatbot.py
-
-Stub (can just return fixed responses).
-
-Later → connect to a real LLM or rule-based system.
-'''
-'''
-logic/chatbot.py
-
-Stub (can just return fixed responses).
-
-Later → connect to a real LLM or rule-based system.
+place holder for our ML chatbot that creates a workoutplan
 '''
 
 class Chatbot:
