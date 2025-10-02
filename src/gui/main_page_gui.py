@@ -1,13 +1,7 @@
 '''
-gui/main_page_gui.py
+Class MainPageGUI
+Organizes set up of app window and set up of tabs 
 
-Class: MainPageGUI
-
-Methods:
-
-build_ui() → shows “Create Workout Plan” button.
-
-on_create_workout() → choose Questionnaire or Chatbot → open new GUI window.
 '''
 
 
