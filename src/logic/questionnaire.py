@@ -1,17 +1,6 @@
-#this should be a class as it represents a entity that doesnt neccesarily change
-#supporting funcitons but mainly class
-# Implement answer validation to the questions here: to encapsulate logic , better for when we implement the chatbot
-#could look like:
 '''
-logic/questionnaire.py
-
-Class: Questionnaire
-
-Methods:
-
-get_questions() (returns list of Qs).
-
-evaluate_answers(answers) (basic scoring).
+Class Questionaire
+The logic behind the questionnaire GUI, gives us freedom to change the questions and or add in a chatbot later
 '''
 
 
