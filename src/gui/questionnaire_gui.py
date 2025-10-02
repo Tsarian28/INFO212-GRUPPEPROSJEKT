@@ -1,15 +1,7 @@
 '''
-gui/questionnaire_gui.py
-
 Class: QuestionnaireGUI
+Creates the questionnaire gui using questionnaire logic to be used in the workout tab on main page
 
-Methods:
-
-build_ui() → show questions (from logic.questionnaire.Questionnaire).
-
-on_submit() → send answers to logic.training_plan.generate_from_questionnaire().
-
-Display routine in RoutineGUI.
 '''
 import tkinter as tk
 from tkinter import messagebox
