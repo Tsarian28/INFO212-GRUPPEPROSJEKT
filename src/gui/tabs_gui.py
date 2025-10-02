@@ -1,3 +1,9 @@
+'''
+The tabs class file that organizes what each tab on the main page should be
+Future implementation:
+- for each subtab, have a separate file with other tabs on the page for organization purposes
+'''
+
 import tkinter as tk
 from tkinter import ttk
 from logic.users import UserManager
