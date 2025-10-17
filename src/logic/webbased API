@@ -1,0 +1,28 @@
+# fastapi_app.py
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Any, Dict
+from training_core import map_tkinter_answers_to_profile, TrainingPlan, plan_to_dict  # <-- importer fra fila over
+
+app = FastAPI(title="Treningsplanlegger API")
+
+class SurveyInput(BaseModel):
+    Erfaring: str
+    Mål: str
+    Preferanse: str
+    Antall: str
+    Varighet: str
+
+@app.post("/plan")
+def create_plan(payload: SurveyInput) -> Dict[str, Any]:
+    """Tar inn samme struktur som dagens Tkinter-skjema og returnerer 4-ukers plan."""
+    profile = map_tkinter_answers_to_profile(payload.dict())
+    plan = TrainingPlan(user=profile).generate(num_weeks=4)
+    return plan_to_dict(plan)
+
+@app.get("/plan/example")
+def example() -> Dict[str, Any]:
+    demo = {"Erfaring": "Viderekommen", "Mål": "Bli sterkere", "Preferanse": "Styrketrening", "Antall": "3-4", "Varighet": "60"}
+    profile = map_tkinter_answers_to_profile(demo)
+    plan = TrainingPlan(user=profile).generate(num_weeks=4)
+    return plan_to_dict(plan)
