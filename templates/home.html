@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}INFO212 – Hjem{% endblock %}
+{% block content %}
+  <section class="card" style="text-align:center; padding:2rem;">
+    <h1>Velkommen til INFO212-treningsappen</h1>
+    <p>Planlegg økter, generér program med spørreskjema, og hold oversikt.</p>
+    <p>
+      <a href="{{ url_for('workouts') }}" class="btn">Gå til Treningsoversikt</a>
+      {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('login') }}" class="secondary" style="margin-left:.5rem;">Logg inn</a>
+      {% endif %}
+    </p>
+  </section>
+
+  <section class="grid-2" style="margin-top:1rem;">
+    <img src="{{ url_for('static', filename='images/bilde1.jpg') }}" alt="Treningsbilde 1">
+    <img src="{{ url_for('static', filename='images/bilde2.jpg') }}" alt="Treningsbilde 2">
+  </section>
+{% endblock %}
