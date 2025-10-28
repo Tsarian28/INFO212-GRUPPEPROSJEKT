@@ -141,3 +141,48 @@ def questionnaire():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+# --- add in app.py ---
+from flask import jsonify  # you already import render_template, etc.
+
+@app.get("/api/workouts")
+@login_required
+def api_workouts():
+    return jsonify(models.workouts_for_user(current_user.id))
+
+@app.get("/api/sessions")
+@login_required
+def api_sessions():
+    q_date = request.args.get("date")
+    q_from = request.args.get("from")
+    q_to = request.args.get("to")
+    if q_date:
+        return jsonify(models.sessions_on(current_user.id, q_date))
+    if not (q_from and q_to):
+        return jsonify({"error": "missing from/to"}), 400
+    return jsonify(models.sessions_between(current_user.id, q_from, q_to))
+
+@app.post("/api/sessions")
+@login_required
+def api_sessions_create():
+    data = request.get_json(force=True) or {}
+    date_str = data.get("date")
+    workout_id = data.get("workout_id")
+    notes = data.get("notes")
+    start_time = data.get("start_time")
+    end_time = data.get("end_time")
+    if not date_str or not workout_id:
+        return jsonify({"error": "missing date/workout_id"}), 400
+    created = models.session_create(current_user.id, int(workout_id), date_str, notes, start_time, end_time)
+    return jsonify(created), 201
+
+@app.delete("/api/sessions/<int:sid>")
+@login_required
+def api_sessions_delete(sid: int):
+    models.session_delete(current_user.id, sid)
+    return jsonify({"ok": True})
+
+@app.get("/calendar")
+@login_required
+def calendar_page():
+    return render_template("calendar.html")

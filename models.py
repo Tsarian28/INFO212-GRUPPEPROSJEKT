@@ -32,6 +32,18 @@ CREATE TABLE IF NOT EXISTS exercises (
     weight REAL DEFAULT 0,
     FOREIGN KEY(workout_id) REFERENCES workouts(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    workout_id INTEGER NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,                      -- YYYY-MM-DD
+    start_time TEXT,                         -- HH:MM (optional)
+    end_time TEXT,                           -- HH:MM (optional)
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 """
 
 def get_conn() -> sqlite3.Connection:
@@ -94,3 +106,59 @@ def workout_stats(user_id: int) -> Dict[str, int]:
 def workout_delete(user_id: int, workout_id: int) -> None:
     with get_conn() as conn:
         conn.execute("DELETE FROM workouts WHERE id = ? AND user_id = ?", (workout_id, user_id))
+        
+# --- add these helpers in models.py (below your existing functions) ---
+from typing import Optional, List, Dict
+
+def workouts_for_user(user_id: int) -> List[dict]:
+    """JSON-friendly workouts list for the calendar."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT id, name, sets, duration_min, COALESCE(notes,'') AS notes "
+            "FROM workouts WHERE user_id = ? ORDER BY created_at DESC",
+            (user_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+def sessions_between(user_id: int, from_date: str, to_date: str) -> List[dict]:
+    sql = (
+        "SELECT s.id, s.date, s.start_time, s.end_time, s.notes, s.workout_id, w.name AS workout_name "
+        "FROM sessions s JOIN workouts w ON w.id = s.workout_id "
+        "WHERE s.user_id = ? AND s.date BETWEEN ? AND ? "
+        "ORDER BY s.date, s.start_time IS NULL, s.start_time, s.id"
+    )
+    with get_conn() as conn:
+        rows = conn.execute(sql, (user_id, from_date, to_date)).fetchall()
+        return [dict(r) for r in rows]
+
+def sessions_on(user_id: int, the_date: str) -> List[dict]:
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT s.id, s.date, s.start_time, s.end_time, s.notes, s.workout_id, w.name AS workout_name "
+            "FROM sessions s JOIN workouts w ON w.id = s.workout_id "
+            "WHERE s.user_id = ? AND s.date = ? "
+            "ORDER BY s.start_time IS NULL, s.start_time, s.id",
+            (user_id, the_date),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+def session_create(user_id: int, workout_id: int, date_str: str,
+                   notes: Optional[str], start_time: Optional[str], end_time: Optional[str]) -> dict:
+    with get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO sessions (user_id, workout_id, date, start_time, end_time, notes) "
+            "VALUES (?,?,?,?,?,?)",
+            (user_id, workout_id, date_str, start_time, end_time, notes),
+        )
+        new_id = cur.lastrowid
+        row = conn.execute(
+            "SELECT s.id, s.date, s.start_time, s.end_time, s.notes, s.workout_id, w.name AS workout_name "
+            "FROM sessions s JOIN workouts w ON w.id = s.workout_id WHERE s.id = ?",
+            (new_id,),
+        ).fetchone()
+        return dict(row)
+
+def session_delete(user_id: int, session_id: int) -> None:
+    with get_conn() as conn:
+        conn.execute("DELETE FROM sessions WHERE id = ? AND user_id = ?", (session_id, user_id))
+
