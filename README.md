@@ -1,10 +1,10 @@
-# 🏋️ INFO212 Treningsapp
+# INFO212 Treningsapp
 
 A Flask web app for planning, generating, and logging workouts with a built-in calendar.
 
 ---
 
-## ⚙️ Setup
+## Setup
 
 ```bash
 git clone https://github.com/Tsarian28/INFO212-GRUPPEPROSJEKT.git
