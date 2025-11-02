@@ -7,7 +7,7 @@ A Flask web app for planning, generating, and logging workouts with a built-in c
 ## ⚙️ Setup
 
 ```bash
-git clone https://github.com/<your-user>/INFO212-GRUPPEPROSJEKT.git
+git clone https://github.com/Tsarian28/INFO212-GRUPPEPROSJEKT.git
 cd INFO212-GRUPPEPROSJEKT
 python -m venv .venv
 source .venv/bin/activate        # or .venv\Scripts\activate on Windows
