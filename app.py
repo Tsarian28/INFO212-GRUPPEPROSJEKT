@@ -7,7 +7,7 @@ from wtforms.validators import DataRequired, NumberRange, Length
 from flask_wtf import FlaskForm
 import json, os
 import models
-from plan_logic import generate_plan
+from plan_logic import generate_plan, generate_weekly_plan
 
 app = Flask(__name__)
 app.config.update(SECRET_KEY="change-me-please")
@@ -139,5 +139,31 @@ def questionnaire():
     plan = generate_plan(goal, level, gear)
     return render_template("_plan_result.html", plan=plan, goal=goal, level=level, gear=gear)
 
+@app.post("/questionnaire/weekly")
+@login_required
+def questionnaire_weekly():
+    goal  = request.form.get("goal")
+    level = request.form.get("level")
+    gear  = request.form.get("gear")
+    days  = int(request.form.get("days_per_week", 3))  # optional
+    week  = generate_weekly_plan(goal, level, gear, days)
+    return render_template("_weekly_plan.html", week=week)
+
+@app.get("/example-card/<kind>")
+def example_plan_card(kind):
+    if kind == "strength":
+        plan = generate_plan("hypertrofi", "middels", "full_gym")
+        title = "Eksempel – Styrke"
+    elif kind == "cardio":
+        plan = generate_plan("utholdenhet", "nybegynner", "kroppsvekt")
+        title = "Eksempel – Kondisjon"
+    else:
+        plan = generate_plan("hypertrofi", "nybegynner", "kroppsvekt")
+        title = "Eksempel – Økt"
+    return render_template("_mini_plan_card.html", title=title, items=plan[:5])
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+
