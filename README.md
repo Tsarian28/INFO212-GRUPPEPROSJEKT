@@ -22,14 +22,14 @@ Open Calendar to view and schedule sessions.
 Log out when done.
 
 ## structure:
-app.py                 # main Flask app
-models.py              # database helpers
-plan_logic.py          # smart training plan generator
-templates/             # HTML templates
-static/                # CSS and images
-instance/app.db        # auto-created local database
+- app.py                 # main Flask app
+- models.py              # database helpers
+- plan_logic.py          # smart training plan generator
+- templates/             # HTML templates
+- static/                # CSS and images
+- instance/app.db        # auto-created local database
 
-##Notes
+## Notes
 The database is created automatically in /instance.
 Delete instance/ to reset.
 Run locally only; debug mode is on by default.
