@@ -1,5 +1,5 @@
 from __future__ import annotations
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin, current_user
 from wtforms import StringField, IntegerField, TextAreaField, SelectField, PasswordField
@@ -7,7 +7,7 @@ from wtforms.validators import DataRequired, NumberRange, Length
 from flask_wtf import FlaskForm
 import json, os
 import models
-from plan_logic import generate_plan
+from plan_logic import generate_plan, generate_weekly_plan
 
 app = Flask(__name__)
 app.config.update(SECRET_KEY="change-me-please")
@@ -20,6 +20,7 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+# ----------------- Auth model -----------------
 class User(UserMixin):
     def __init__(self, row):
         self.id = row["id"]
@@ -38,6 +39,7 @@ class User(UserMixin):
 def load_user(user_id):
     return User.from_id(int(user_id))
 
+# ----------------- Forms -----------------
 class WorkoutForm(FlaskForm):
     name = StringField("Navn", validators=[DataRequired(), Length(max=100)])
     sets = IntegerField("Sett", validators=[DataRequired(), NumberRange(min=1, max=100)])
@@ -49,10 +51,15 @@ class LoginForm(FlaskForm):
     password = PasswordField("Passord", validators=[DataRequired(), Length(min=3, max=200)])
 
 class QuizForm(FlaskForm):
-    goal = SelectField("Mål", choices=[("hypertrofi","Hypertrofi"),("styrke","Styrke"),("spenst","Spenst"),("utholdenhet","Utholdenhet")], validators=[DataRequired()])
-    level = SelectField("Nivå", choices=[("nybegynner","Nybegynner"),("middels","Middels"),("avansert","Avansert")], validators=[DataRequired()])
-    gear = SelectField("Utstyr", choices=[("fullt_gym","Fullt gym"),("kroppsvekt","Kroppsvekt"),("hjemme_enkle","Hjemme – enkle")], validators=[DataRequired()])
+    goal = SelectField("Mål", choices=[
+        ("hypertrofi","Hypertrofi"),("styrke","Styrke"),
+        ("spenst","Spenst"),("utholdenhet","Utholdenhet")], validators=[DataRequired()])
+    level = SelectField("Nivå", choices=[
+        ("nybegynner","Nybegynner"),("middels","Middels"),("avansert","Avansert")], validators=[DataRequired()])
+    gear = SelectField("Utstyr", choices=[
+        ("fullt_gym","Fullt gym"),("kroppsvekt","Kroppsvekt"),("hjemme_enkle","Hjemme – enkle")], validators=[DataRequired()])
 
+# ----------------- Pages -----------------
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -93,6 +100,7 @@ def logout():
     logout_user()
     return redirect(url_for("home"))
 
+# ----------------- Workouts CRUD -----------------
 @app.route("/workouts/create", methods=["POST"])
 @login_required
 def create_workout():
@@ -130,6 +138,7 @@ def stats_partial():
     stats = models.workout_stats(current_user.id)
     return render_template("_stats.html", stats=stats)
 
+# ----------------- Plan generators (yours) -----------------
 @app.route("/questionnaire", methods=["POST"])
 @login_required
 def questionnaire():
@@ -139,16 +148,37 @@ def questionnaire():
     plan = generate_plan(goal, level, gear)
     return render_template("_plan_result.html", plan=plan, goal=goal, level=level, gear=gear)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.post("/questionnaire/weekly")
+@login_required
+def questionnaire_weekly():
+    goal  = request.form.get("goal")
+    level = request.form.get("level")
+    gear  = request.form.get("gear")
+    days  = int(request.form.get("days_per_week", 3))
+    week  = generate_weekly_plan(goal, level, gear, days)
+    return render_template("_weekly_plan.html", week=week)
 
-# --- add in app.py ---
-from flask import jsonify  # you already import render_template, etc.
+@app.get("/example-card/<kind>")
+def example_plan_card(kind):
+    if kind == "strength":
+        plan = generate_plan("hypertrofi", "middels", "full_gym")
+        title = "Eksempel – Styrke"
+    elif kind == "cardio":
+        plan = generate_plan("utholdenhet", "nybegynner", "kroppsvekt")
+        title = "Eksempel – Kondisjon"
+    else:
+        plan = generate_plan("hypertrofi", "nybegynner", "kroppsvekt")
+        title = "Eksempel – Økt"
+    return render_template("_mini_plan_card.html", title=title, items=plan[:5])
 
+# ----------------- Calendar APIs (Marcus) -----------------
 @app.get("/api/workouts")
 @login_required
 def api_workouts():
-    return jsonify(models.workouts_for_user(current_user.id))
+    # Prefer Marcus' helper if present; otherwise fall back to the list you already have
+    if hasattr(models, "workouts_for_user"):
+        return jsonify(models.workouts_for_user(current_user.id))
+    return jsonify(models.workout_list(current_user.id))
 
 @app.get("/api/sessions")
 @login_required
@@ -156,15 +186,17 @@ def api_sessions():
     q_date = request.args.get("date")
     q_from = request.args.get("from")
     q_to = request.args.get("to")
-    if q_date:
+    if q_date and hasattr(models, "sessions_on"):
         return jsonify(models.sessions_on(current_user.id, q_date))
-    if not (q_from and q_to):
-        return jsonify({"error": "missing from/to"}), 400
-    return jsonify(models.sessions_between(current_user.id, q_from, q_to))
+    if q_from and q_to and hasattr(models, "sessions_between"):
+        return jsonify(models.sessions_between(current_user.id, q_from, q_to))
+    return jsonify({"error": "missing date/from/to or server not supporting sessions API"}), 400
 
 @app.post("/api/sessions")
 @login_required
 def api_sessions_create():
+    if not hasattr(models, "session_create"):
+        return jsonify({"error": "sessions API not available on server"}), 501
     data = request.get_json(force=True) or {}
     date_str = data.get("date")
     workout_id = data.get("workout_id")
@@ -179,6 +211,8 @@ def api_sessions_create():
 @app.delete("/api/sessions/<int:sid>")
 @login_required
 def api_sessions_delete(sid: int):
+    if not hasattr(models, "session_delete"):
+        return jsonify({"error": "sessions API not available on server"}), 501
     models.session_delete(current_user.id, sid)
     return jsonify({"ok": True})
 
@@ -186,3 +220,7 @@ def api_sessions_delete(sid: int):
 @login_required
 def calendar_page():
     return render_template("calendar.html")
+
+# ----------------- Entry -----------------
+if __name__ == "__main__":
+    app.run(debug=True)

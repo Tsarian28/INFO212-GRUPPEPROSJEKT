@@ -1,37 +1,104 @@
 from __future__ import annotations
-def generate_plan(goal: str, level: str, gear: str):
-    base = []
-    def push(name, sets, reps, weight=0):
-        base.append({"name": name, "sets": sets, "reps": reps, "weight": weight})
-    if goal == "styrke":
-        push("Knebøy", 5, 5)
-        push("Benkpress", 5, 5)
-        push("Markløft", 3, 5)
-    if goal == "hypertrofi":
-        push("Skrå benk m/manualer", 4, 10)
-        push("Nedtrekk/Bor", 4, 10)
-        push("Skulderpress", 3, 12)
-    if goal == "spenst":
-        push("Box jumps", 5, 5)
-        push("Medisinball-kast", 4, 6)
-        push("Bulgarian split squat", 4, 8)
-    if goal == "utholdenhet":
-        push("Roing (meter)", 3, 500)
-        push("Sykling intervall (min)", 6, 2)
-        push("Kjernesirkel (reps)", 3, 15)
-    mult = 0.8 if level == "nybegynner" else 1.2 if level == "avansert" else 1.0
-    for e in base:
-        e["sets"] = max(1, round(e["sets"] * mult))
-        e["reps"] = max(1, round(e["reps"] * mult))
+
+# Small knowledge base
+GOAL_BLOCKS = {
+    "styrke": [
+        ("Knebøy", "main"),
+        ("Benkpress", "main"),
+        ("Markløft", "main"),
+        ("Skulderpress", "assist"),
+        ("Roing med stang", "assist"),
+    ],
+    "hypertrofi": [
+        ("Skrå benk m/manualer", "main"),
+        ("Nedtrekk", "main"),
+        ("Skulderpress", "assist"),
+        ("Roing kabel", "assist"),
+        ("Sidehev", "isolation"),
+        ("Biceps curl", "isolation"),
+        ("Triceps pushdown", "isolation"),
+    ],
+    "spenst": [
+        ("Box jumps", "main"),
+        ("Medisinball-kast", "main"),
+        ("Hoppende utfall", "assist"),
+        ("Kettlebell swing", "assist"),
+        ("Kjerne – hollow hold", "isolation"),
+    ],
+    "utholdenhet": [
+        ("Intervall (løp/sykkel/romaskin)", "main"),
+        ("toes to bar", "main"),
+        ("Goblet squat (lett)", "assist"),
+        ("Pushups", "assist"),
+        ("Planke", "isolation"),
+    ],
+}
+
+LEVEL_TUNING = {
+    "nybegynner": {"main": (3, "5–8"), "assist": (2, "8–12"), "isolation": (2, "12–15"), "rpe": "6–7"},
+    "middels":    {"main": (4, "4–6"), "assist": (3, "8–10"), "isolation": (3, "12–15"), "rpe": "7–8"},
+    "avansert":   {"main": (5, "3–5"), "assist": (4, "6–8"),  "isolation": (3, "10–12"), "rpe": "8–9"},
+}
+
+def _swap_for_gear(name: str, gear: str) -> str:
+    lname = name.lower()
     if gear == "kroppsvekt":
-        for e in base:
-            lname = e["name"].lower()
-            if "benk" in lname:
-                e["name"] = "Push-ups variant"
-            if "mark" in lname:
-                e["name"] = "Hip hinge (kroppsvekt)"
+        if "benk" in lname:      return "Pushups (variant)"
+        if "mark" in lname:      return "Hip hinge (kroppsvekt)"
+        if "skulderpress" in lname: return "Pike pushups"
+        if "roing" in lname:     return "Invertert roing"
     if gear == "hjemme_enkle":
-        for e in base:
-            if e["name"] == "Knebøy":
-                e["name"] = "Goblet squat"
-    return base
+        if name == "Knebøy":     return "Goblet squat"
+        if "nedtrekk" in lname:  return "Pull-aparts / ettarms roing m/manual"
+    return name
+
+def _time_cap(goal: str) -> int:
+    # rough cap: more isolation for hypertrophy, fewer items for strength
+    return {"hypertrofi": 7, "styrke": 5, "spenst": 6, "utholdenhet": 5}.get(goal, 6)
+
+def generate_plan(goal: str, level: str, gear: str):
+    goal = goal if goal in GOAL_BLOCKS else "hypertrofi"
+    level = level if level in LEVEL_TUNING else "nybegynner"
+    blocks = GOAL_BLOCKS[goal]
+    tune = LEVEL_TUNING[level]
+    cap = _time_cap(goal)
+
+    out = []
+    for name, kind in blocks[:cap]:
+        name = _swap_for_gear(name, gear)
+        sets, reps = tune[kind]
+        out.append({"name": name, "sets": sets, "reps": reps, "weight": 0})
+    # Quality-of-life: finisher suggestion for longer sessions (stays compatible)
+    if goal in ("hypertrofi", "utholdenhet") and len(out) < cap:
+        out.append({"name": "Finisher: core/mobilitet", "sets": 1, "reps": "8–10 min", "weight": 0})
+    return out
+
+def generate_weekly_plan(goal: str, level: str, gear: str, days_per_week: int = 3):
+    # reuse your existing blocks/tuning; simple split based on days
+    days_per_week = max(2, min(5, int(days_per_week or 3)))
+    meta = {"goal": goal, "level": level, "gear": gear, "days_per_week": days_per_week}
+
+    splits = {
+        2: [("Dag 1 – Helkropp", "full"), ("Dag 2 – Helkropp", "full")],
+        3: [("Dag 1 – Overkropp", "upper"), ("Dag 2 – Underkropp", "lower"), ("Dag 3 – Helkropp", "full")],
+        4: [("Dag 1 – Overkropp", "upper"), ("Dag 2 – Underkropp", "lower"),
+            ("Dag 3 – Overkropp", "upper"), ("Dag 4 – Underkropp", "lower")],
+        5: [(f"Dag {i} – Helkropp" if i==3 else f"Dag {i} – Fokus {['push','pull','legs','core','mixed'][i-1]}", "full")
+            for i in range(1,6)]
+    }
+    slots = splits.get(days_per_week)
+
+    week = {"meta": meta, "days": []}
+    for name, focus in slots:
+        ex_list = generate_plan(goal, level, gear)  # start from your single-day set
+        # light filter to match focus
+        if focus == "upper":
+            ex_list = [e for e in ex_list if any(k in e["name"].lower() for k in ["benk","press","ro","pull","skuld","push"])]
+        elif focus == "lower":
+            ex_list = [e for e in ex_list if any(k in e["name"].lower() for k in ["kneb","mark","utfall","squat","hinge","swing"])]
+        # add a finisher for variety on full body
+        if focus == "full":
+            ex_list = ex_list[:6] + [{"name": "Finisher: core/mobilitet", "time_min": 8}]
+        week["days"].append({"name": name, "exercises": ex_list})
+    return week
+
