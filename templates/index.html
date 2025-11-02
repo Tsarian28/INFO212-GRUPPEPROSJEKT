@@ -40,16 +40,36 @@
 </section>
 
 <section class="card" style="margin-top:1rem;">
-  <h2>Spørreskjema → Programforslag</h2>
-  <form hx-post="{{ url_for('questionnaire') }}" hx-target="#planResult" hx-swap="innerHTML" class="row wrap">
+  <h2>Programforslag</h2>
+
+  <!-- add an id so buttons can include this form -->
+  <form id="quizForm"
+        class="row wrap"
+        hx-post="{{ url_for('questionnaire') }}"
+        hx-target="#planResult"
+        hx-swap="innerHTML">
     {{ quiz.hidden_tag() }}
+
     <label>Mål {{ quiz.goal() }}</label>
     <label>Nivå {{ quiz.level() }}</label>
     <label>Utstyr {{ quiz.gear() }}</label>
+
+    <!-- single-day button (existing) -->
     <button type="submit">Generer forslag</button>
+
+    <!-- WEEKLY PLAN button (posts to a different endpoint) -->
+    <button type="button" class="btn-outline"
+        hx-post="{{ url_for('questionnaire_weekly') }}"
+        hx-include="#quizForm"
+        hx-target="#planResult"
+        hx-swap="innerHTML">WEEKLY PLAN</button>
+
   </form>
+
+  <!-- keep ONE results container -->
   <div id="planResult" class="muted" style="margin-top:.6rem;">Ingen forslag ennå.</div>
 </section>
+
 
 <section id="workout-list">
   {% include "workouts_list.html" %}
