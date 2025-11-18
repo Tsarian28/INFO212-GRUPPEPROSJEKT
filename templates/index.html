@@ -57,13 +57,6 @@
     <!-- single-day button (existing) -->
     <button type="submit">Generer forslag</button>
 
-    <!-- WEEKLY PLAN button (posts to a different endpoint) -->
-    <button type="button" class="btn-outline"
-        hx-post="{{ url_for('questionnaire_weekly') }}"
-        hx-include="#quizForm"
-        hx-target="#planResult"
-        hx-swap="innerHTML">WEEKLY PLAN</button>
-
   </form>
 
   <!-- keep ONE results container -->
