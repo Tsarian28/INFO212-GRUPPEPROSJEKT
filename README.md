@@ -1,4 +1,17 @@
-# INFO212 Treningsapp
+# INFO212 Treningsapp Final:
+
+## Important Information for Grader
+
+We have two branches that were expanded upon in Sprint 3:  
+- `feature/hjem-cards-forbedring`  
+- `adrian/progressbar`
+
+During this sprint our priority got a little sidetracked, as we had a hiccup in the design of our project. The home page that has the inlogging could also be used to generate a plan; however, we decided to redesign these instead of fixing the bugs of the calendar, which would align more with the user stories we had. Because of this, our priority ranking and sprint were not as thorough as we would’ve liked them to be.
+
+We also didn’t plan enough to combine the two branches to have a working final, thrown-together branch. In the weeks following the exam and during the winter vacation, we want to continue working on this project and making it into a workout generation plan that has no bugs and a better design.
+
+Overall, this course has been very helpful in learning more about how to use GIT and planning and scheduling a plan for a group programming project.
+
 
 A Flask web app for planning, generating, and logging workouts with a built-in calendar.
 
